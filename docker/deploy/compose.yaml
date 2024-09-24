@@ -1,0 +1,52 @@
+services:
+  webpy:
+    build:
+      context: ../web
+      additional_contexts:
+        - webapp=../..
+    command: /app/.venv/bin/gunicorn ofipensiones.wsgi -w 4 --chdir ofipensiones -b webpy:8000
+    expose:
+      - 8000
+    env_file:
+      - path: ./.web.env
+    healthcheck:
+      test: curl -sSf http://webpy:8000/healthcheck/ || exit 1
+      start_interval: 10s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      pgdb:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: ../nginx
+      additional_contexts:
+        - webapp=../..
+    ports:
+      - 8080:80
+    depends_on:
+      - webpy
+
+  pgdb:
+    build:
+      context: ../pg
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../../db/pg:/docker-entrypoint-initdb.d
+    shm_size: 256mb
+    env_file:
+      - path: ./.pg.env
+    healthcheck:
+      test: pg_isready -U ofipensiones_web -d ofipensiones_andes
+      start_period: 10s
+      start_interval: 5s
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  pgdata:

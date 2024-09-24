@@ -1,0 +1,23 @@
+# IDE specific
+.vscode
+
+# python
+.venv
+
+# docker
+.dockerignore
+
+# project
+baremetal/
+db/
+docker/
+test/
+
+ofipensiones/static
+
+README.md
+dj_manage_env.sh
+
+# VCS
+.git/
+.gitignore
